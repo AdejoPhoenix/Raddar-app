@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Events in {{ settings.city_name }} tonight — {{ settings.app_name }}{% endblock %}
+{% block description %}Live and upcoming events in {{ settings.city_name }} — music, food, markets and more happening now or within the next few hours.{% endblock %}
+
+{% block content %}
+<section class="city">
+  <h1>What's happening in {{ settings.city_name }} right now</h1>
+  <p class="lede">Live and starting within {{ settings.now_and_next_hours }} hours. <a href="/">Open the map →</a></p>
+
+  {% if events %}
+  {% for category, items in clusters.items() %}
+  <section class="cluster">
+    <h2 class="cluster-head cat-tag cat-{{ category|lower }}">{{ category }} <span>({{ items|length }})</span></h2>
+    <ul class="city-list">
+      {% for e in items %}
+      <li class="city-item cat-{{ e.category.value|lower }}">
+        <a href="/event/{{ e.event_id }}">{{ e.title }}</a>
+        <small>{{ e.cost_tier.value }} · ends in {{ e.minutes_until_end }} min</small>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+  {% else %}
+  <p class="empty">Nothing live this minute — the map fills up most evenings.</p>
+  {% endif %}
+</section>
+{% endblock %}

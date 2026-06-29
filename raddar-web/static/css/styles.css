@@ -1,0 +1,358 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --text: #e8eaed;
+  --muted: #9aa0aa;
+  --music: #e23a3a;
+  --food: #2faa55;
+  --market: #e8862a;
+  --art: #8b48c9;
+  --nightlife: #3a5bd9;
+  --sports: #1aa7a0;
+  --community: #d9a521;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font: 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, #1b1f28 0%, var(--panel) 100%);
+  border-bottom: 1px solid #222831;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  z-index: 3;
+}
+.brand {
+  color: var(--text); text-decoration: none; font-weight: 800;
+  letter-spacing: 0.2px; display: inline-flex; align-items: center; gap: 8px;
+}
+/* a small live "radar" dot that breathes — ambient signal that the map is real-time */
+.brand::before {
+  content: ""; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--food); box-shadow: 0 0 8px var(--food);
+  animation: radar-blip 2.2s ease-in-out infinite;
+}
+@keyframes radar-blip {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+.tagline { color: var(--muted); font-size: 13px; }
+.topbar-link {
+  margin-left: auto; color: var(--text); text-decoration: none; font-weight: 600;
+  font-size: 14px; padding: 6px 12px; border-radius: 99px; border: 1px solid #2f3845;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.topbar-link:hover { background: rgba(255,255,255,0.06); border-color: #3a4453; }
+@media (prefers-reduced-motion: reduce) { .brand::before { animation: none; } }
+
+main { flex: 1; position: relative; display: flex; min-height: 0; }
+
+/* --- Map page --- */
+#map { position: absolute; inset: 0; }
+.panel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 320px; max-width: 80vw;
+  background: rgba(20,23,30,0.82); backdrop-filter: blur(14px) saturate(1.2);
+  border-left: 1px solid #222831; padding: 14px; overflow-y: auto; z-index: 1;
+  box-shadow: -8px 0 24px rgba(0,0,0,0.3);
+  scrollbar-width: thin; scrollbar-color: #333b48 transparent;
+}
+.panel::-webkit-scrollbar { width: 8px; }
+.panel::-webkit-scrollbar-thumb { background: #333b48; border-radius: 99px; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.panel-head small { color: var(--muted); }
+
+.event-list, .city-list { list-style: none; margin: 0; padding: 0; }
+.event-item {
+  display: flex; gap: 11px; padding: 11px 10px; margin-bottom: 4px;
+  border-radius: 10px; border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.event-item:not(.skeleton-item):hover {
+  background: rgba(255,255,255,0.04); border-color: #2a313c; transform: translateX(2px);
+}
+.event-item a { color: var(--text); text-decoration: none; font-weight: 600; }
+.event-item a:hover { text-decoration: underline; }
+.event-item small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+.dot {
+  width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; flex: none;
+  background: currentColor; color: #888;
+  border: 1.5px solid rgba(255,255,255,0.85);
+  box-shadow: 0 0 7px 0 currentColor;
+}
+.dot.skel { background: none; box-shadow: none; border: none; } /* keep shimmer clean */
+
+.empty { color: var(--muted); padding: 16px 6px; font-size: 13px; }
+
+/* Reconnecting / stale-data banner */
+.stale-banner {
+  background: rgba(217,165,33,0.15); color: var(--community);
+  border: 1px solid rgba(217,165,33,0.4); border-radius: 6px;
+  padding: 6px 10px; font-size: 12px; margin-bottom: 8px;
+}
+
+/* Loading skeleton (shimmer) */
+.skeleton-item { pointer-events: none; }
+.skel, .skel-line {
+  background: linear-gradient(90deg, #20252e 25%, #2a313c 37%, #20252e 63%);
+  background-size: 400% 100%; animation: shimmer 1.3s ease infinite; border-radius: 4px;
+}
+.skel { border-radius: 50%; }
+.skel-lines { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.skel-line { height: 10px; width: 80%; }
+.skel-line.short { width: 50%; }
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+/* --- Map pins (Vibe-First orbs) --- */
+/* The category color arrives as the inline custom property `--pin` (set in map.js).
+   Everything else — the depth gradient, white ring, and category-tinted ambient glow —
+   is derived here so a pin is a single parameterized component. */
+.pin {
+  --pin: #888;
+  position: relative;
+  display: block; width: 26px; height: 26px; border-radius: 50%;
+  border: 2.5px solid #fff;
+  background: radial-gradient(circle at 34% 30%,
+    color-mix(in srgb, var(--pin) 38%, #fff) 0%,
+    var(--pin) 56%,
+    color-mix(in srgb, var(--pin) 78%, #000) 100%);
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(0,0,0,0.22),
+    0 0 16px 1px color-mix(in srgb, var(--pin) 60%, transparent);
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
+  will-change: transform;
+}
+.pin:hover, .pin:focus-visible {
+  transform: scale(1.22); z-index: 10; outline: none;
+  box-shadow:
+    0 5px 14px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(0,0,0,0.22),
+    0 0 24px 4px color-mix(in srgb, var(--pin) 78%, transparent);
+}
+
+/* Second Vibe-First layer: the category glyph, centred inside the orb. White stroke with a
+   soft shadow so it stays legible over the light top-left of the gradient. Non-interactive —
+   the parent .pin owns the hover/scale and click. */
+.pin .pin-glyph {
+  position: absolute; inset: 0; margin: auto;
+  width: 14px; height: 14px;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,0.5));
+}
+.pin:hover .pin-glyph, .pin:focus-visible .pin-glyph { transform: scale(1.05); }
+
+/* Urgency Visual System: an expanding red ring on a pseudo-element, so the base orb glow
+   is preserved while "ending soon" pulses on top. */
+.pin.pulsing::after {
+  content: ""; position: absolute; inset: -1px; border-radius: 50%;
+  animation: pulse 1.4s ease-out infinite; pointer-events: none;
+}
+.event-item.ending-soon { background: rgba(226,58,58,0.08); }
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(226,58,58,0.65); }
+  70%  { box-shadow: 0 0 0 15px rgba(226,58,58,0); }
+  100% { box-shadow: 0 0 0 0 rgba(226,58,58,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin.pulsing::after { animation: none; box-shadow: 0 0 0 3px rgba(226,58,58,0.5); }
+  .pin { transition: none; }
+}
+
+/* category accents — drive `color` so both the dot fill (background: currentColor)
+   and its glow (box-shadow: currentColor) pick up the category hue */
+.cat-music .dot { color: var(--music); }
+.cat-food .dot { color: var(--food); }
+.cat-market .dot { color: var(--market); }
+.cat-art .dot { color: var(--art); }
+.cat-nightlife .dot { color: var(--nightlife); }
+.cat-sports .dot { color: var(--sports); }
+.cat-community .dot { color: var(--community); }
+
+/* --- Detail & city pages --- */
+.detail, .city { max-width: 720px; margin: 0 auto; padding: 28px 20px; }
+.back { color: var(--muted); text-decoration: none; }
+.meta { display: flex; gap: 10px; align-items: center; color: var(--muted); }
+.cat-tag { padding: 2px 8px; border-radius: 99px; color: #fff; font-size: 12px; }
+.cat-tag.cat-music { background: var(--music); } .cat-tag.cat-food { background: var(--food); }
+.cat-tag.cat-market { background: var(--market); } .cat-tag.cat-art { background: var(--art); }
+.cat-tag.cat-nightlife { background: var(--nightlife); } .cat-tag.cat-sports { background: var(--sports); }
+.cat-tag.cat-community { background: var(--community); }
+.today { color: #2faa55; font-weight: 600; }
+.coords { color: var(--muted); }
+.cluster { margin-top: 22px; }
+.cluster-head { display: inline-block; font-size: 13px; margin-bottom: 4px; }
+.cluster-head span { opacity: 0.8; }
+.city-item { padding: 12px 0; border-bottom: 1px solid #20252e; }
+.city-item a { color: var(--text); text-decoration: none; font-weight: 600; display: block; }
+.city-item small { color: var(--muted); }
+.lede { color: var(--muted); }
+
+/* Bookmark (Lazy Wall) + mock consent */
+.bookmark-btn, .consent-form button {
+  margin-top: 16px; padding: 10px 16px; border-radius: 8px; border: 1px solid #2f3845;
+  background: #1d2230; color: var(--text); font-weight: 600; cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.bookmark-btn:hover, .consent-form button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.bookmark-btn { background: #1d2230; }
+.bookmark-btn.active {
+  background: var(--music); border-color: var(--music);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--music) 45%, transparent);
+}
+.consent-form { display: flex; flex-direction: column; gap: 8px; max-width: 320px; margin-top: 16px; }
+.consent-form input { padding: 10px; border-radius: 8px; border: 1px solid #2f3845; background: #11151c; color: var(--text); }
+.consent-form button { background: var(--food); border-color: var(--food); }
+
+/* Host an event */
+.host-launcher {
+  position: absolute; left: 16px; bottom: 16px; z-index: 2;
+  display: flex; align-items: center; gap: 10px;
+}
+.host-btn {
+  padding: 12px 18px; border-radius: 99px; border: none;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--food) 80%, #fff) 0%, var(--food) 100%);
+  color: #fff; font-weight: 700; cursor: pointer; letter-spacing: 0.2px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.host-btn:hover:not(:disabled) {
+  transform: translateY(-1px); filter: brightness(1.06);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.55), 0 0 18px color-mix(in srgb, var(--food) 50%, transparent);
+}
+.host-btn:active:not(:disabled) { transform: translateY(0); }
+.host-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.host-quota {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  background: rgba(0,0,0,0.55); padding: 6px 10px; border-radius: 99px;
+}
+.host-quota.full { color: var(--music); }
+.host-modal {
+  position: absolute; inset: 0; z-index: 5; display: flex;
+  align-items: center; justify-content: center; background: rgba(0,0,0,0.55);
+}
+/* the `hidden` attribute must beat `display: flex` above, or the modal never closes */
+.host-modal[hidden] { display: none; }
+.host-form {
+  background: var(--panel); border: 1px solid #2a313c; border-radius: 12px;
+  padding: 18px; width: 360px; max-width: 92vw; display: flex; flex-direction: column; gap: 12px;
+}
+.host-form h3 { margin: 0; }
+.host-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.host-form input, .host-form select {
+  padding: 9px; border-radius: 8px; border: 1px solid #2f3845; background: #11151c; color: var(--text);
+}
+.host-row { display: flex; gap: 10px; }
+.host-row label { flex: 1; }
+.host-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.host-actions button { padding: 9px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
+#host-submit { background: var(--food); color: #fff; }
+.host-actions .ghost { background: transparent; color: var(--muted); border: 1px solid #2f3845; }
+.host-status { color: var(--community); font-size: 13px; min-height: 16px; margin: 0; }
+
+/* Category swatch picker: a radiogroup of live-pin orbs (.pin) so the host's choice previews
+   the actual map pin. --pin is set on each button; the orb inherits it for its gradient and the
+   selected state reuses it for the ring. */
+.host-field { display: flex; flex-direction: column; gap: 6px; }
+.host-field-label { font-size: 13px; color: var(--muted); }
+.swatch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 8px 4px; border-radius: 10px; border: 1px solid transparent;
+  background: #11151c; color: var(--muted); cursor: pointer; font: inherit;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.swatch:hover { background: #161b24; }
+.swatch:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+/* the orb inherits the button's --pin (overriding .pin's own #888 default); feedback lives
+   on the button, so keep the orb itself steady on hover */
+.swatch .swatch-orb { --pin: inherit; cursor: pointer; }
+.swatch .swatch-orb:hover { transform: none; }
+.swatch-label { font-size: 11px; line-height: 1; }
+.swatch.selected {
+  border-color: color-mix(in srgb, var(--pin) 65%, #fff);
+  background: #1b2230; color: var(--text);
+}
+.swatch.selected .swatch-orb {
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.55), 0 0 0 2px #fff,
+    0 0 18px 2px color-mix(in srgb, var(--pin) 70%, transparent);
+}
+
+/* Cost tap chips: same radiogroup behaviour as the swatches, text-only. */
+.chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.chip {
+  padding: 9px 4px; border-radius: 8px; border: 1px solid #2f3845;
+  background: #11151c; color: var(--muted); cursor: pointer; font: inherit; font-weight: 600;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.chip:hover { background: #161b24; }
+.chip:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.chip.selected { border-color: var(--food); background: #1b2230; color: var(--text); }
+
+/* --- "Your Raddar" account page --- */
+.me { max-width: 720px; margin: 0 auto; padding: 24px 20px 48px; }
+.me-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin: 10px 0 6px; }
+.me-head h1 { margin: 0 0 2px; }
+.me-head .lede { margin: 0; }
+.me-head .ghost {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid #2f3845;
+  background: transparent; color: var(--muted); font-weight: 600; cursor: pointer;
+}
+.me-section { margin-top: 26px; }
+.me-section h2 { font-size: 16px; margin: 0 0 10px; display: flex; align-items: baseline; gap: 8px; }
+.me-section h2 small {
+  color: var(--muted); font-weight: 600; font-size: 12px;
+  background: rgba(255,255,255,0.06); padding: 2px 9px; border-radius: 99px;
+}
+.me-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.me-card {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+  padding: 13px 14px; background: var(--panel); border: 1px solid #232a34; border-radius: 12px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.me-card:hover { border-color: #313a47; transform: translateY(-1px); }
+.me-card .dot { margin-top: 0; }
+.me-card-body { min-width: 0; }
+.me-card-body a { color: var(--text); text-decoration: none; font-weight: 600; }
+.me-card-body a:hover { text-decoration: underline; }
+.me-card-body small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+.me-card.ending-soon { border-color: rgba(226,58,58,0.5); }
+
+.me-actions { display: flex; gap: 6px; }
+.icon-btn {
+  padding: 7px 12px; border-radius: 8px; border: 1px solid #2f3845;
+  background: #1d2230; color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer;
+  transition: filter 0.15s ease, background 0.15s ease;
+}
+.icon-btn:hover { filter: brightness(1.15); }
+.icon-btn.unsave { color: var(--community); border-color: transparent; background: transparent; font-size: 18px; line-height: 1; }
+.icon-btn.danger:hover { background: var(--music); border-color: var(--music); color: #fff; filter: none; }
+
+/* inline edit form spans the full card width */
+.me-edit { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.me-edit[hidden] { display: none; }
+.me-edit input, .me-edit select {
+  padding: 9px; border-radius: 8px; border: 1px solid #2f3845; background: #11151c; color: var(--text);
+}
+.me-edit-row { display: flex; gap: 8px; }
+.me-edit-row select { flex: 1; min-width: 0; }
+.me-edit-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.me-edit-actions button { padding: 8px 14px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
+.me-edit-actions button[type="submit"] { background: var(--food); color: #fff; }
+.me-edit-actions .ghost { background: transparent; color: var(--muted); border: 1px solid #2f3845; }
+
+/* mobile: panel becomes a bottom sheet */
+@media (max-width: 640px) {
+  .panel { top: auto; left: 0; width: 100%; max-width: none; height: 45%; border-left: none; border-top: 1px solid #222831; }
+}

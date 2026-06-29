@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Sign in — {{ settings.app_name }}{% endblock %}
+
+{% block content %}
+<div class="detail">
+  <a class="back" href="/">← cancel</a>
+  <h1>Continue to {{ settings.app_name }}</h1>
+  <p class="lede">Mock sign-in (no real provider configured). Pick a handle to continue.</p>
+
+  <form method="post" action="/auth/callback" class="consent-form">
+    <input type="hidden" name="state" value="{{ state }}" />
+    <input type="hidden" name="provider" value="mock" />
+    <label for="code">Sign in as</label>
+    <input id="code" name="code" value="alex" autocomplete="off" />
+    <button type="submit">Continue →</button>
+  </form>
+  <p class="coords">redirect_uri: {{ redirect_uri }}</p>
+</div>
+{% endblock %}

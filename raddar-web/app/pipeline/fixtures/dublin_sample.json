@@ -1,0 +1,75 @@
+[
+  {
+    "source_name": "fixture_predicthq",
+    "source_tier": "1_api",
+    "external_id": "phq-1",
+    "title": "Trad session at The Cobblestone",
+    "category": "trad",
+    "start_time": "2030-09-01T19:00:00Z",
+    "end_time": "2030-09-01T21:30:00Z",
+    "lat": 53.3489,
+    "lng": -6.2776,
+    "cost_tier": "free"
+  },
+  {
+    "source_name": "fixture_eventbrite",
+    "source_tier": "1_api",
+    "external_id": "eb-2",
+    "title": "Eatyard street food",
+    "category": "street food",
+    "start_time": "2030-09-01T17:30:00Z",
+    "lat": 53.3402,
+    "lng": -6.2655,
+    "cost_tier": "€"
+  },
+  {
+    "source_name": "fixture_scrape",
+    "source_tier": "2_scrape",
+    "title": "Dublin Flea Market",
+    "category": "flea",
+    "start_time": "2030-09-01T11:00:00Z",
+    "end_time": "2030-09-01T16:00:00Z",
+    "lat": 53.3512,
+    "lng": -6.2590,
+    "cost_tier": "free"
+  },
+  {
+    "source_name": "fixture_editorial",
+    "source_tier": "3_editorial",
+    "title": "Pop-up gallery on Francis St",
+    "category": "gallery",
+    "start_time": "2030-09-01T18:00:00Z",
+    "lat": 53.3411,
+    "lng": -6.2730
+  },
+  {
+    "source_name": "fixture_scrape",
+    "source_tier": "2_scrape",
+    "title": "Trad session at The Cobblestone",
+    "category": "music",
+    "start_time": "2030-09-01T19:00:00Z",
+    "lat": 53.3489,
+    "lng": -6.2776,
+    "cost_tier": "free"
+  },
+  {
+    "source_name": "fixture_predicthq",
+    "source_tier": "1_api",
+    "external_id": "phq-london",
+    "title": "Gig in Camden",
+    "category": "gig",
+    "start_time": "2030-09-01T20:00:00Z",
+    "lat": 51.5390,
+    "lng": -0.1426,
+    "cost_tier": "€€"
+  },
+  {
+    "source_name": "fixture_scrape",
+    "source_tier": "2_scrape",
+    "title": "Mystery happening",
+    "category": "quantum-rave",
+    "start_time": "2030-09-01T20:00:00Z",
+    "lat": 53.3450,
+    "lng": -6.2600
+  }
+]

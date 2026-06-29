@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets / local config
+.env
+*.env
+!.env.example
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Claude scratch
+scratchpad/

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="map" role="application" aria-label="Map of events happening now and next near you"></div>
+
+<div class="host-launcher">
+  <button id="host-btn" class="host-btn" type="button">+ Host an event here</button>
+  <span id="host-quota" class="host-quota" hidden></span>
+</div>
+
+<div id="host-modal" class="host-modal" hidden>
+  <form id="host-form" class="host-form">
+    <h3>Drop a pin at your location</h3>
+    <label>What's happening?
+      <input id="h-title" name="title" maxlength="120" placeholder="e.g. Taco truck on Dame St" required />
+    </label>
+    <div class="host-field">
+      <span class="host-field-label" id="h-category-label">Type</span>
+      {# orb+glyph swatches, built by host.js from the shared pins.js maps so the picker
+         previews exactly what the live pin will look like. Hidden input carries the value. #}
+      <div id="h-category-swatches" class="swatch-grid" role="radiogroup"
+           aria-labelledby="h-category-label"></div>
+      <input type="hidden" id="h-category" name="category" value="Music" />
+    </div>
+    <div class="host-field">
+      <span class="host-field-label" id="h-cost-label">Cost</span>
+      {# Free / € / €€ / €€€ tap chips, built by host.js. Hidden input carries the value. #}
+      <div id="h-cost-chips" class="chip-grid" role="radiogroup" aria-labelledby="h-cost-label"></div>
+      <input type="hidden" id="h-cost" name="cost_tier" value="Free" />
+    </div>
+    <label>For
+      <select id="h-duration" name="duration_minutes">
+        <option value="60">1 hour</option>
+        <option value="120" selected>2 hours</option>
+        <option value="180">3 hours</option>
+        <option value="360">6 hours</option>
+      </select>
+    </label>
+    <p id="host-status" class="host-status"></p>
+    <div class="host-actions">
+      <button type="button" id="host-cancel" class="ghost">Cancel</button>
+      <button type="submit" id="host-submit">Drop pin</button>
+    </div>
+  </form>
+</div>
+
+<aside id="panel" class="panel" aria-label="Nearby events list">
+  <div class="panel-head">
+    <strong>Happening now &amp; next</strong>
+    <small id="count">{{ events|length }} within {{ settings.geofence_miles }} mi</small>
+  </div>
+
+  <div id="stale-banner" class="stale-banner" hidden>Reconnecting… showing last known events</div>
+
+  {# shown only while the first client fetch is in flight and we have nothing yet #}
+  <ul id="skeleton" class="event-list" hidden aria-hidden="true">
+    {% for _ in range(4) %}
+    <li class="event-item skeleton-item">
+      <span class="dot skel"></span>
+      <div class="skel-lines"><span class="skel-line"></span><span class="skel-line short"></span></div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <ul id="event-list" class="event-list">
+    {# server-rendered first paint — JS replaces this once geolocation resolves #}
+    {% for e in events %}
+    <li class="event-item cat-{{ e.category.value|lower }}{% if e.is_ending_soon %} ending-soon{% endif %}"
+        data-id="{{ e.event_id }}">
+      <span class="dot"></span>
+      <div>
+        <a href="/event/{{ e.event_id }}">{{ e.title }}</a>
+        <small>{{ e.category.value }} · {{ e.cost_tier.value }} · ends in {{ e.minutes_until_end }} min</small>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <p id="empty" class="empty" hidden>
+    Quiet within a 15-minute walk right now — check back in an hour, things pick up after {{ settings.now_and_next_hours }}h.
+  </p>
+</aside>
+
+<script id="bootstrap-data" type="application/json">{{ events_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+  window.RADAR_CONFIG = {
+    anchor: [{{ settings.anchor_lng }}, {{ settings.anchor_lat }}],
+    geofenceMiles: {{ settings.geofence_miles }},
+    urgencyMinutes: {{ settings.urgency_minutes }},
+    refetchSeconds: {{ settings.refetch_seconds }}
+  };
+</script>
+<script src="/static/js/pins.js"></script>
+<script src="/static/js/map.js"></script>
+<script src="/static/js/urgency.js"></script>
+<script src="/static/js/host.js"></script>
+{% endblock %}

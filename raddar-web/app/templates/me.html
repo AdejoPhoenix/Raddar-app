@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Your Raddar — {{ settings.app_name }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+
+{% macro event_card(e, kind) %}
+<li class="me-card cat-{{ e.category.value|lower }}{% if e.is_ending_soon %} ending-soon{% endif %}"
+    data-id="{{ e.event_id }}">
+  <span class="dot"></span>
+  <div class="me-card-body">
+    <a href="/event/{{ e.event_id }}">{{ e.title }}</a>
+    <small>{{ e.category.value }} · {{ e.cost_tier.value }} · ends in {{ e.minutes_until_end }} min</small>
+  </div>
+  {% if kind == "saved" %}
+  <button class="icon-btn unsave" data-id="{{ e.event_id }}" title="Remove from saved" aria-label="Remove from saved">★</button>
+  {% else %}
+  <div class="me-actions">
+    <button class="icon-btn edit" data-id="{{ e.event_id }}">Edit</button>
+    <button class="icon-btn danger delete" data-id="{{ e.event_id }}">Delete</button>
+  </div>
+  <form class="me-edit" hidden data-id="{{ e.event_id }}">
+    <input name="title" value="{{ e.title }}" maxlength="120" required aria-label="Title" />
+    <div class="me-edit-row">
+      <select name="category" aria-label="Category">
+        {% for c in ["Music","Food","Market","Art","Nightlife","Sports","Community"] %}
+        <option value="{{ c }}"{% if c == e.category.value %} selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <select name="cost_tier" aria-label="Cost">
+        {% for c in ["Free","€","€€","€€€"] %}
+        <option value="{{ c }}"{% if c == e.cost_tier.value %} selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <select name="duration_minutes" aria-label="Length">
+        <option value="">Keep length</option>
+        <option value="60">1 hour</option>
+        <option value="120">2 hours</option>
+        <option value="180">3 hours</option>
+        <option value="360">6 hours</option>
+      </select>
+    </div>
+    <div class="me-edit-actions">
+      <button type="button" class="ghost cancel-edit">Cancel</button>
+      <button type="submit">Save changes</button>
+    </div>
+  </form>
+  {% endif %}
+</li>
+{% endmacro %}
+
+{% block content %}
+<article class="me">
+  <a class="back" href="/">← back to the map</a>
+
+  <div class="me-head">
+    <div>
+      <h1>Your Raddar</h1>
+      <p class="lede">{{ user.name or user.email or "Signed in" }}</p>
+    </div>
+    <form method="post" action="/auth/logout"><button class="ghost" type="submit">Sign out</button></form>
+  </div>
+
+  <section class="me-section" data-empty="No saved events yet. Tap ☆ on any event to keep it here.">
+    <h2>★ Saved <small>{{ saved|length }}</small></h2>
+    {% if saved %}
+    <ul class="me-list">{% for e in saved %}{{ event_card(e, "saved") }}{% endfor %}</ul>
+    {% else %}
+    <p class="empty">No saved events yet. Tap ☆ on any event to keep it here.</p>
+    {% endif %}
+  </section>
+
+  <section class="me-section" data-empty="You're not hosting anything right now. Use “+ Host an event here” on the map.">
+    <h2>📍 Your pins <small>{{ hosted|length }}</small></h2>
+    {% if hosted %}
+    <ul class="me-list">{% for e in hosted %}{{ event_card(e, "hosted") }}{% endfor %}</ul>
+    {% else %}
+    <p class="empty">You're not hosting anything right now. Use “+ Host an event here” on the map.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/me.js"></script>
+{% endblock %}

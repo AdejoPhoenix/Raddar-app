@@ -1,0 +1,66 @@
+# Render blueprint — deploy the web app (and, later, run the pipeline cron alongside).
+services:
+  - type: web
+    name: raddar-web
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    # Apply migrations before the new version serves traffic.
+    preDeployCommand: alembic upgrade head
+    envVars:
+      - key: DEBUG
+        value: "false"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DB_BACKEND
+        value: postgres
+      # Production schema is managed by Alembic, not create_all.
+      - key: AUTO_CREATE_TABLES
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: raddar-db
+          property: connectionString
+      - key: AIRTABLE_API_KEY
+        sync: false
+      - key: AIRTABLE_BASE_ID
+        sync: false
+      - key: AIRTABLE_TABLE
+        value: Events
+      # OAuth: leave OAUTH_MOCK=true until real creds are added, then set false + fill these.
+      - key: OAUTH_MOCK
+        value: "true"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+  # Ingestion pipeline on a schedule — keeps the map fresh.
+  - type: cron
+    name: raddar-pipeline
+    runtime: docker
+    schedule: "*/10 * * * *" # every 10 minutes
+    dockerCommand: python -m app.pipeline.run
+    envVars:
+      - key: DB_BACKEND
+        value: postgres
+      - key: AUTO_CREATE_TABLES
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: raddar-db
+          property: connectionString
+      - key: EVENTBRITE_TOKEN
+        sync: false
+      - key: EVENTBRITE_ORGANIZATION_ID
+        sync: false
+      - key: PREDICTHQ_TOKEN
+        sync: false
+      - key: GOOGLE_GEOCODING_KEY
+        sync: false
+
+databases:
+  - name: raddar-db
+    plan: basic-256mb

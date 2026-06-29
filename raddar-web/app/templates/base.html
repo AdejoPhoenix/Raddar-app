@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{% block title %}{{ settings.app_name }} — what's happening near you, right now{% endblock %}</title>
+  <meta name="description" content="{% block description %}The zero-search map of what's happening within a 15-minute walk in {{ settings.city_name }}, starting right now.{% endblock %}" />
+
+  <link rel="canonical" href="{{ request.url }}" />
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <meta name="theme-color" content="#0f1115" />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:title" content="{{ self.title() }}" />
+  <meta property="og:description" content="{{ self.description() }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ request.url }}" />
+
+  <!-- Twitter card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ self.title() }}" />
+  <meta name="twitter:description" content="{{ self.description() }}" />
+
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">{{ settings.app_name }}</a>
+    <span class="tagline">{{ settings.city_name }} · now &amp; next</span>
+    <a class="topbar-link" href="/me">You</a>
+  </header>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  {% block scripts %}{% endblock %}
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js"));
+    }
+  </script>
+</body>
+</html>

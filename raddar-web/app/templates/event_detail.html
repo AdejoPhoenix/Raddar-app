@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} — {{ settings.app_name }} {{ settings.city_name }}{% endblock %}
+{% block description %}{{ event.title }} in {{ settings.city_name }} — {{ event.category.value }}, {{ event.cost_tier.value }}. Find it on the Raddar live map.{% endblock %}
+
+{% block head_extra %}
+{# JSON-LD structured data so search engines render a rich event result #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": {{ event.title|tojson }},
+  "startDate": "{{ event.start_time.isoformat() }}",
+  "endDate": "{{ event.end_time.isoformat() }}",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "location": {
+    "@type": "Place",
+    "geo": {"@type": "GeoCoordinates", "latitude": {{ event.lat }}, "longitude": {{ event.lng }}}
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="detail">
+  <a class="back" href="/">← back to the map</a>
+  <h1>{{ event.title }}</h1>
+  <p class="meta">
+    <span class="cat-tag cat-{{ event.category.value|lower }}">{{ event.category.value }}</span>
+    <span>{{ event.cost_tier.value }}</span>
+    {% if event.is_today %}<span class="today">Today</span>{% endif %}
+  </p>
+  <p>Starts {{ event.start_time.strftime("%H:%M") }} · ends {{ event.end_time.strftime("%H:%M") }} (UTC)</p>
+  <p class="coords">📍 {{ "%.4f"|format(event.lat) }}, {{ "%.4f"|format(event.lng) }}</p>
+
+  {# High-intent action — triggers the Lazy Wall (OAuth) if anonymous #}
+  <button id="bookmark-btn" class="bookmark-btn" data-event-id="{{ event.event_id }}">
+    ☆ Bookmark
+  </button>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/bookmark.js"></script>
+{% endblock %}
