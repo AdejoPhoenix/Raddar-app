@@ -3,11 +3,12 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
-# Install deps first for layer caching
+# `pip install .` builds the project (packages = ["app"]), so the package source must be
+# present before install — not just pyproject.toml. Deps still resolve in this one layer.
 COPY pyproject.toml ./
+COPY app ./app
 RUN pip install --no-cache-dir .
 
-COPY app ./app
 COPY static ./static
 COPY scripts ./scripts
 COPY alembic ./alembic
